@@ -18,7 +18,7 @@ Generate release #15
 Jobs
 Run details
 Workflow file for this run
-.github/workflows/myrelease.yml at c47bce2
+.github/workflows/myrelease.yml
 name: Generate release
 on: 
   push:
