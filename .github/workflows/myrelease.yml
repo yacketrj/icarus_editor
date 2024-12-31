@@ -1,0 +1,79 @@
+Skip to content
+Navigation Menu
+dealloc
+icarus_editor
+
+Type / to search
+Code
+Issues
+3
+Pull requests
+Discussions
+Actions
+Projects
+Security
+Insights
+Generate release
+Generate release #15
+Jobs
+Run details
+Workflow file for this run
+.github/workflows/release.yml at c47bce2
+name: Generate release
+on: 
+  push:
+    tags:
+      - '*'
+
+
+jobs:
+ build_windows:
+  strategy:
+    matrix:
+      os: [{runner: windows-2022, kind: windows, version: 11}, {runner: windows-2019, kind: windows, version: 10}]
+  name: Build ${{ matrix.os.kind }} ${{ matrix.os.version }}
+  runs-on: ${{ matrix.os.runner }}
+  steps:
+    - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    - run: flutter config --enable-windows-desktop
+    - run: flutter build windows --release
+      working-directory: ./src/icarus_editor
+    - uses: actions/upload-artifact@v3
+      with:
+        name: icarus_editor_windows${{ matrix.os.version }}
+        path: ./src/icarus_editor/build/windows/x64/runner/Release/
+
+ create_release:
+    needs: [build_windows]
+    name: Publish packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3.0.1
+        with:
+          path: .
+
+      - name: Create Windows 10 archive
+        uses: thedoctor0/zip-release@main
+        with:
+          type: 'zip'
+          filename: '../windows-10-x64.zip'
+          directory: 'icarus_editor_windows10/'
+
+      - name: Create Windows 11 archive
+        uses: thedoctor0/zip-release@main
+        with:
+          type: 'zip'
+          filename: '../windows-11-x64.zip'
+          directory: 'icarus_editor_windows11/'
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.zip,*.tar.gz"
+fix Github CI · dealloc/icarus_editor@c47bce2
